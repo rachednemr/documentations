@@ -1,0 +1,137 @@
+{#
+/**
+ * @file
+ * Theme override to display a menu.
+ *
+ * Available variables:
+ * - menu_name: The machine name of the menu.
+ * - items: A nested list of menu items. Each menu item contains:
+ *   - attributes: HTML attributes for the menu item.
+ *   - below: The menu item child items.
+ *   - title: The menu link title.
+ *   - url: The menu link url, instance of \Drupal\Core\Url
+ *   - localized_options: Menu link localized options.
+ *   - is_expanded: TRUE if the link has visible children within the current
+ *     menu tree.
+ *   - is_collapsed: TRUE if the link has children within the current menu tree
+ *     that are not currently visible.
+ *   - in_active_trail: TRUE if the link is in the active trail.
+ */
+#}
+
+{#
+We call a macro which calls itself to render the full tree.
+@see https://twig.symfony.com/doc/1.x/tags/macro.html
+#}
+{% import _self as menus %}
+
+{# Call menus first time. Level: 0, Index/key : 0 #}
+{{ menus.menu_links(items, attributes, 0, 0) }}
+
+{% macro menu_links(items, attributes, menu_level, key) %}
+
+  {# Recursive call #}
+  {% import _self as menus %}
+
+  {# If the menu has items. Otherways don't render anything #}
+  {% if items %}
+
+    {# If the item is the first parent menu_level = 0 #}
+    {# We need to find out because first parent doesn't have same classes as nested parents... #}
+    {% if menu_level == 0 %}
+
+      {# If parent nav has nested nav/items, there we need the bootstrap accodrion on sm.#}
+      {% if items[items | keys.0 ].below or items[items | keys.1 ].below %}
+
+        {# List of bootstrap the classes added to the menu default class #}
+        {% set menuClasses = [
+          'px-0',
+          'm-0',
+          'parent-list',
+          'navbar-nav',
+          'flex-column',
+          'flex-lg-row',
+          'w-100'
+        ] %}
+        {# Also adding the attribute id for the accordion to work #}
+        <ul{{ attributes.setAttribute('id', 'accordion'~ menu_level ~ key ).addClass(menuClasses) }}>
+
+      {# If parent nav has does not nested nav, we add classes we need #}
+      {# And we don't need the accordion...#}
+      {% else %}
+
+        {# List of bootstrap the classes added to the menu default class #}
+        {% set menuClasses = [
+          'parent-list',
+          'navbar-nav',
+          'flex-column',
+          'flex-lg-row',
+          'w-100'
+        ] %}
+        <ul{{ attributes.addClass(menuClasses) }}>
+      {% endif %}
+
+    {# If the menu is not the first parent. We add specific classes... #}
+    {% else %}
+
+      {# For mobile version of the menu. We still need the accordion id to menu submenu togglable in case it has childs...#}
+      <ul id ="accordion{{ menu_level }}{{ key }}"
+          {# bootstrap classes and a logic condition [ menu_level > 1 ? 'd-lg-none' ] to hide menu on large screens#}
+          class="sub-nav {{ menu_level > 1 ? 'd-lg-none' }} w-100 d-flex pl-lg-3 navbar-nav flex-column flex-lg-row w-100">
+    {% endif %}
+
+    {# Loop through menu items. #}
+    {% for item in items %}
+
+      {# Adding bootstrap default classes: [position-relative nav-item align-items-center px-lg-4 ] #}
+      {#
+      Add active class if menu item is active
+      ~ ( item.in_active_trail ? ' active border-0' )
+      Add different background class if menu item has first level, not active and without childs
+      ~ ( menu_level == 0 and not item.below and not item.in_active_trail ? ' bg-gray-l3')
+      Hide child items for on large screens
+      ~ ( not item.in_active_trail and menu_level == 0 and item.below  ? ' d-lg-none'  )
+      #}
+      <li{{ item.attributes.addClass('position-relative nav-item align-items-center px-lg-4 '
+        ~ ( item.in_active_trail ? ' active border-0' )
+        ~ ( menu_level == 0 and not item.below and item.in_active_trail ? ' bg-gray-l3')
+        ~ ( not item.in_active_trail and menu_level == 0 and item.below  ? ' d-lg-none'  )
+      ) }}>
+
+        {# If the item has child items... #}
+        {% if item.below %}
+
+          {# Hide toggler button and menu links on large screen. #}
+          <div class="m-0 p-0 d-lg-none d-flex justify-content-between align-items-center">
+            {# Add bootstrap classes to drupal navigation links depending on level and active state #}
+            {{ link(
+              item.title, item.url,
+              { 'class':['nav-link', 'no-underline', menu_level == 1 ? '' : 'd-lg-none', item.in_active_trail ? 'text-gray-l3' :'text-white' ]}
+            ) }}
+              {# Bootstrap toggler button #}
+              <a class="btn-collapse {{ item.in_active_trail ? 'text-gray-l2': 'text-white' }}" data-toggle="collapse" data-target="#collapse{{ menu_level }}{{ key }}{{ loop.index }}" aria-expanded="{{ item.in_active_trail ? 'true': 'false' }}" aria-controls="collapse{{ menu_level }}{{ key }}{{ loop.index }}" href="#" class="p-2 d-flex d-lg-none ml-auto">
+                <span class="fas {{ item.in_active_trail ? 'text-gray-l2': 'text-white' }} fa-chevron-right"></span>
+              </a>
+          </div>
+
+          {# Hide the collapse menu on large screens #}
+          <div id="collapse{{ menu_level }}{{ key }}{{ loop.index }}" class="d-lg-none container collapse {{ item.in_active_trail == 1  ? 'show' }}" aria-labelledby="heading{{ menu_level }}{{ key }}{{ loop.index }}" data-parent="#accordion{{ menu_level }}{{ key }}">
+            {{ menus.menu_links(item.below, attributes, menu_level + 1, loop.index ) }}
+          </div>
+
+          {# show the large screen menu and hide it on small devices... #}
+          <div class="d-none d-lg-flex">
+            {{ link(item.title, item.url,  { 'class':['nav-link', 'no-underline', menu_level == 1 ? 'text-white' : ' text-white d-lg-none' ]}) }}
+            {# Menu link recursive call with dynamic parameters... #}
+            {{ menus.menu_links(item.below, attributes, menu_level + 1, loop.index ) }}
+          </div>
+
+        {# If the item doesn't have child items... #}
+        {% else %}
+          {{ link(item.title, item.url,  { 'class':['nav-link', 'no-underline', menu_level == 0 ? ' text-primary ' :  ' text-white '  ]}) }}
+        {% endif %}
+      </li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+    {% endmacro %}
