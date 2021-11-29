@@ -106,32 +106,65 @@ We call a macro which calls itself to render the full tree.
             {# Add bootstrap classes to drupal navigation links depending on level and active state #}
             {{ link(
               item.title, item.url,
-              { 'class':['nav-link', 'no-underline', menu_level == 1 ? '' : 'd-lg-none', item.in_active_trail ? 'text-gray-l3' :'text-white' ]}
+              { 'class':[
+                  'nav-link',
+                  'no-underline',
+                  menu_level == 1 ? '' : 'd-lg-none',
+                  item.in_active_trail ? 'text-gray-l3' :'text-white'
+                ]
+              }
             ) }}
               {# Bootstrap toggler button #}
-              <a class="btn-collapse {{ item.in_active_trail ? 'text-gray-l2': 'text-white' }}" data-toggle="collapse" data-target="#collapse{{ menu_level }}{{ key }}{{ loop.index }}" aria-expanded="{{ item.in_active_trail ? 'true': 'false' }}" aria-controls="collapse{{ menu_level }}{{ key }}{{ loop.index }}" href="#" class="p-2 d-flex d-lg-none ml-auto">
+              <a class="btn-collapse {{ item.in_active_trail ? 'text-gray-l2': 'text-white' }}"
+                 data-toggle="collapse"
+                 data-target="#collapse{{ menu_level }}{{ key }}{{ loop.index }}"
+                 aria-expanded="{{ item.in_active_trail ? 'true': 'false' }}"
+                 aria-controls="collapse{{ menu_level }}{{ key }}{{ loop.index }}"
+                 href="#"
+                 class="p-2 d-flex d-lg-none ml-auto">
                 <span class="fas {{ item.in_active_trail ? 'text-gray-l2': 'text-white' }} fa-chevron-right"></span>
               </a>
           </div>
 
           {# Hide the collapse menu on large screens #}
-          <div id="collapse{{ menu_level }}{{ key }}{{ loop.index }}" class="d-lg-none container collapse {{ item.in_active_trail == 1  ? 'show' }}" aria-labelledby="heading{{ menu_level }}{{ key }}{{ loop.index }}" data-parent="#accordion{{ menu_level }}{{ key }}">
+          <div id="collapse{{ menu_level }}{{ key }}{{ loop.index }}"
+             class="d-lg-none container collapse {{ item.in_active_trail == 1  ? 'show' }}"
+             aria-labelledby="heading{{ menu_level }}{{ key }}{{ loop.index }}"
+             data-parent="#accordion{{ menu_level }}{{ key }}">
             {{ menus.menu_links(item.below, attributes, menu_level + 1, loop.index ) }}
           </div>
 
           {# show the large screen menu and hide it on small devices... #}
           <div class="d-none d-lg-flex">
-            {{ link(item.title, item.url,  { 'class':['nav-link', 'no-underline', menu_level == 1 ? 'text-white' : ' text-white d-lg-none' ]}) }}
+            {{ link(
+              item.title, item.url,
+              {
+                'class':[
+                  'nav-link',
+                  'no-underline',
+                  menu_level == 1 ? 'text-white' : ' text-white d-lg-none'
+                ]
+              }
+            ) }}
             {# Menu link recursive call with dynamic parameters... #}
             {{ menus.menu_links(item.below, attributes, menu_level + 1, loop.index ) }}
           </div>
 
         {# If the item doesn't have child items... #}
         {% else %}
-          {{ link(item.title, item.url,  { 'class':['nav-link', 'no-underline', menu_level == 0 ? ' text-primary ' :  ' text-white '  ]}) }}
+          {{ link(
+            item.title, item.url,
+            {
+              'class':[
+                'nav-link',
+                'no-underline',
+                menu_level == 0 ? ' text-primary ' : ' text-white '
+            ]
+            }
+          ) }}
         {% endif %}
       </li>
     {% endfor %}
     </ul>
-    {% endif %}
-    {% endmacro %}
+  {% endif %}
+{% endmacro %}

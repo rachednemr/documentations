@@ -1,0 +1,11 @@
+uuid: 7f30b64e-db94-4431-a91a-bb6e288e1ae3
+langcode: en
+status: true
+dependencies:
+  content:
+    - 'file:file:117094ab-7d36-4ba4-959e-ab19fc471907'
+id: map
+label: Map
+icon_uuid: 117094ab-7d36-4ba4-959e-ab19fc471907
+description: "<b>Map  Paragraph</b> is used to locate places and it is used in the content type: <b>Simple Page</b><br>\r\nThe longitude and latitude are mandatory in order to pinpoint the location. The text and the marker tool-tip are optional.<br>\r\nThe map can also have a grey filter, be in full with or included within a text paragraph.<br>"
+behavior_plugins: {  }
